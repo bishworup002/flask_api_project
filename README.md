@@ -34,7 +34,7 @@
 
 6. Create the default admin user:
     ```bash
-    python default_admin.py
+    python default_users.py
     ```
 
 ## API Endpoints
