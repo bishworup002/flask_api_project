@@ -5,8 +5,8 @@ from sqlalchemy import event
 from . import db
 
 class RoleEnum(Enum):
-    USER = "User"
-    ADMIN = "Admin"
+    USER = "USER"
+    ADMIN = "ADMIN"
 
 class User(db.Model):
     __tablename__ = 'users'  # Explicitly set the table name

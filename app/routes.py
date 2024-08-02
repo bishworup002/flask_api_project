@@ -55,16 +55,23 @@ def reset_password():
         return jsonify({"msg": "Password updated successfully"}), 200
     
     return jsonify({"msg": "Invalid password"}), 400
+# Forget Password 
 
-# User CRUD operations
+    
+
 # User CRUD operations
 @user_bp.route('/<int:user_id>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def modify_user(user_id):
     current_user = get_jwt_identity()
     user = User.query.get_or_404(user_id)
-    if current_user['role'] != RoleEnum.ADMIN or user.role == RoleEnum.ADMIN:
+    # if current_user['role'] != 'Admin' or user.role == RoleEnum.ADMIN:
+    #     return jsonify({"msg": "Not authorized to modify this user"}), 403
+    # f"{current_user['role'].upper(),RoleEnum.ADMIN.value}"
+    if current_user['role'].upper() != RoleEnum.ADMIN.value :
         return jsonify({"msg": "Not authorized to modify this user"}), 403
+    if  user.role.value == RoleEnum.ADMIN.value and user.username!=current_user['username']:
+        return jsonify({"msg": "You can not change other admin"}), 403
     if request.method == 'PUT':
         data = request.get_json()
         user.username = data.get('username', user.username)
@@ -73,7 +80,7 @@ def modify_user(user_id):
         user.email = data.get('email', user.email)
         user.active = data.get('active', user.active)
         # Allow updating role
-        new_role = data.get('role')
+        new_role = data.get('role').upper()
         if new_role:
             try:
                 user.role = RoleEnum(new_role)
