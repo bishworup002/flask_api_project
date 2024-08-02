@@ -1,12 +1,21 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, url_for
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .models import User, RoleEnum
 from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+try:
+    from .config import Config
+except ImportError as e:
+    print(f"ImportError: {e}")
+    raise
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 user_bp = Blueprint('user', __name__, url_prefix='/user')
+
+# Create a serializer for generating secure tokens
+serializer = URLSafeTimedSerializer(Config.SECRET_KEY)
 
 # Register User
 @auth_bp.route('/register', methods=['POST'])
@@ -55,9 +64,45 @@ def reset_password():
         return jsonify({"msg": "Password updated successfully"}), 200
     
     return jsonify({"msg": "Invalid password"}), 400
-# Forget Password 
 
+# Forget Password
+@auth_bp.route('/forget_password', methods=['POST'])
+def forget_password():
+    data = request.get_json()
+    user = User.query.filter_by(email=data.get('email')).first()
+    if user:
+        token = serializer.dumps(user.email, salt='password-reset-salt')
+        reset_url = url_for('auth.reset_password_with_token', token=token, _external=True)
+        
+        return jsonify({
+            "msg": "Password reset link generated successfully",
+            "reset_link": reset_url
+        }), 200
     
+    return jsonify({"msg": "Email not found"}), 404
+
+# Reset Password with Token
+@auth_bp.route('/reset_password/<token>', methods=['POST'])
+def reset_password_with_token(token):
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)  # Token expires after 1 hour
+    except SignatureExpired:
+        return jsonify({"msg": "The password reset link has expired"}), 400
+    except:
+        return jsonify({"msg": "The password reset link is invalid"}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    if user:
+        data = request.get_json()
+        new_password = data.get('new_password')
+        if new_password:
+            user.set_password(new_password)
+            db.session.commit()
+            return jsonify({"msg": "Your password has been updated"}), 200
+        else:
+            return jsonify({"msg": "New password is required"}), 400
+    
+    return jsonify({"msg": "User not found"}), 404
 
 # User CRUD operations
 @user_bp.route('/<int:user_id>', methods=['PUT', 'DELETE'])

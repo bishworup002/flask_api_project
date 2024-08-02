@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
   title: User Management API
+  description: API for user management including authentication and CRUD operations
   version: 1.0.0
-  description: API for user management, authentication, and authorization
 
 servers:
   - url: http://localhost:5000
@@ -33,6 +33,7 @@ paths:
               required:
                 - username
                 - password
+                - email
       responses:
         '201':
           description: User created successfully
@@ -41,7 +42,7 @@ paths:
 
   /auth/login:
     post:
-      summary: Sign in a user
+      summary: User login
       tags:
         - Authentication
       requestBody:
@@ -73,11 +74,11 @@ paths:
 
   /auth/reset_password:
     post:
-      summary: Reset user password
+      summary: Reset user password (requires authentication)
       tags:
         - Authentication
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -97,16 +98,75 @@ paths:
           description: Password updated successfully
         '400':
           description: Invalid password
-        '401':
-          description: Unauthorized
+
+  /auth/forget_password:
+    post:
+      summary: Request password reset link
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        '200':
+          description: Password reset link generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                  reset_link:
+                    type: string
+        '404':
+          description: Email not found
+
+  /auth/reset_password/{token}:
+    post:
+      summary: Reset password using token
+      tags:
+        - Authentication
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_password:
+                  type: string
+              required:
+                - new_password
+      responses:
+        '200':
+          description: Password has been updated
+        '400':
+          description: Invalid or expired token, or new password is required
+        '404':
+          description: User not found
 
   /user/{user_id}:
     put:
-      summary: Update user information
+      summary: Update user information (Admin only)
       tags:
         - User Management
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - in: path
           name: user_id
@@ -142,13 +202,12 @@ paths:
           description: Not authorized to modify this user
         '404':
           description: User not found
-
     delete:
-      summary: Delete a user
+      summary: Delete a user (Admin only)
       tags:
         - User Management
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - in: path
           name: user_id
@@ -165,7 +224,7 @@ paths:
 
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
