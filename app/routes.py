@@ -57,15 +57,14 @@ def reset_password():
     return jsonify({"msg": "Invalid password"}), 400
 
 # User CRUD operations
+# User CRUD operations
 @user_bp.route('/<int:user_id>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def modify_user(user_id):
     current_user = get_jwt_identity()
     user = User.query.get_or_404(user_id)
-
-    if current_user['role'] != 'Admin' or user.role == RoleEnum.ADMIN:
+    if current_user['role'] != RoleEnum.ADMIN or user.role == RoleEnum.ADMIN:
         return jsonify({"msg": "Not authorized to modify this user"}), 403
-
     if request.method == 'PUT':
         data = request.get_json()
         user.username = data.get('username', user.username)
@@ -73,9 +72,15 @@ def modify_user(user_id):
         user.last_name = data.get('last_name', user.last_name)
         user.email = data.get('email', user.email)
         user.active = data.get('active', user.active)
+        # Allow updating role
+        new_role = data.get('role')
+        if new_role:
+            try:
+                user.role = RoleEnum(new_role)
+            except ValueError:
+                return jsonify({"msg": "Invalid role provided"}), 400
         db.session.commit()
         return jsonify({"msg": "User updated successfully"}), 200
-
     elif request.method == 'DELETE':
         db.session.delete(user)
         db.session.commit()

@@ -36,6 +36,7 @@
     ```bash
     python default_users.py
     ```
+    
 
 ## API Endpoints
 
