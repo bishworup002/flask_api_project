@@ -17,7 +17,7 @@
     ```
     SECRET_KEY=your_secret_key
     JWT_SECRET_KEY=your_jwt_secret_key
-    DATABASE_URL=postgresql://postgres:p@stgress@localhost:5433/your_database_name
+    DATABASE_URL=postgresql://postgres:password@localhost:port/your_database_name
     ```
 
 4. Initialize the database:
