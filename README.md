@@ -80,11 +80,14 @@
 ### POST /auth/register
 
 Register a new user.
+```
+POST /auth/register
 
+Content-Type: application/json
+```
 Request:
 ```json
-POST /auth/register
-Content-Type: application/json
+
 
 {
   "username": "newuser",
@@ -105,11 +108,13 @@ Response:
 ### POST /auth/login
 
 Authenticate a user and receive a JWT token.
+```
+POST /auth/login
 
+Content-Type: application/json
+```
 Request:
 ```json
-POST /auth/login
-Content-Type: application/json
 
 {
   "username": "admin",
@@ -127,13 +132,15 @@ Response:
 ### POST /auth/reset_password
 
 Reset user's password (requires authentication).
+```
+POST /auth/reset_password
 
+Content-Type: application/json
+
+Authorization: Bearer <your_jwt_token>
+```
 Request:
 ```json
-POST /auth/reset_password
-Content-Type: application/json
-Authorization: Bearer <your_jwt_token>
-
 {
   "old_password": "securepassword123",
   "new_password": "evenmore_secure_password456"
@@ -150,11 +157,14 @@ Response:
 ### POST /auth/forget_password
 
 Request a password reset link.
+```
+POST /auth/forget_password
 
+Content-Type: application/json
+```
 Request:
 ```json
-POST /auth/forget_password
-Content-Type: application/json
+
 
 {
   "email": "john.doe@example.com"
@@ -172,12 +182,13 @@ Response:
 ### POST /auth/reset_password/<token>
 
 Reset password using a token.
+```
+POST /auth/reset_password/<token>
 
+Content-Type: application/json
+```
 Request:
 ```json
-POST /auth/reset_password/<token>
-Content-Type: application/json
-
 {
   "new_password": "new_secure_password789"
 }
@@ -193,13 +204,15 @@ Response:
 ### PUT /user/<user_id>
 
 Update user information (requires admin authentication).
+```
+PUT /user/1
 
+Content-Type: application/json
+
+Authorization: Bearer <admin_jwt_token>
+```
 Request:
 ```json
-PUT /user/1
-Content-Type: application/json
-Authorization: Bearer <admin_jwt_token>
-
 {
   "username": "updated_username",
   "first_name": "Jane",
